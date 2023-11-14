@@ -1,0 +1,28 @@
+name: Shorebird Release
+description: Create a new release using the Shorebird CLI
+
+branding:
+  icon: package
+  color: green
+
+inputs:
+  flutter-version:
+    description: The Flutter version to use alongside Shorebird
+    required: false
+  platform:
+    description: The platform for which to create a release (e.g. android, ios-alpha)
+    required: true
+
+outputs:
+  release-version:
+    description: The version of the release that was created.
+    value: ${{ steps.shorebird-release.outputs.release-version }}
+
+runs:
+  using: composite
+  steps:
+    - uses: shorebirdtech/setup-shorebird@v0
+      id: shorebird-release
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+      run: shorebird release ${{ inputs.platform }}
