@@ -28,6 +28,7 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      - uses: shorebirdtech/setup-shorebird@v0
       - run: flutter create e2e_test --empty
       - run: shorebird init --force
         working-directory: e2e_test
