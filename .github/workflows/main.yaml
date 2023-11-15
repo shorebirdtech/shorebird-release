@@ -45,7 +45,7 @@ jobs:
           working-directory: e2e_test
       - if: runner.os != 'Windows'
         run: |
-          if [[ ${{ steps.shorebird-release.outputs.release-version }} =~ "1.0.0+1" ]]; then          
+          if [[ ${{ steps.shorebird-release.outputs.release-version }} =~ "0.1.0+1" ]]; then          
             echo '✅ Shorebird Release Succeeded!'
           else
             echo '❌ Shorebird Release Failed.'
@@ -53,7 +53,7 @@ jobs:
           fi
       - if: runner.os == 'Windows'
         run: |
-          if (${{ steps.shorebird-release.outputs.release-version }} -match "1.0.0+1") {
+          if (${{ steps.shorebird-release.outputs.release-version }} -match "0.1.0+1") {
             Write-Output "✅ Shorebird Release Succeeded!"
           } else {
             Write-Output "❌ Shorebird Release Failed."

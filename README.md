@@ -7,21 +7,22 @@ Create a new release using the [Shorebird CLI](https://github.com/shorebirdtech/
 
 ## Features
 
-✅ Configures the specified version of Flutter
-
 ✅ Create new Android releases
 
 ✅ Create new iOS releases
+
+✅ Outputs the release version
 
 ## Usage
 
 ```yaml
 steps:
+  - uses: shorebirdtech/setup-shorebird@v0
   - uses: shorebirdtech/release-shorebird@v0
     id: shorebird-release
     with:
       platform: android
-      flutter-version: 3.10.6
+      working-directory: ./path/to/app
 
   - run: echo release-version ${{ steps.shorebird-release.outputs.release-version }}
     shell: bash
@@ -31,8 +32,8 @@ steps:
 
 The action takes the following inputs:
 
-- `flutter-version`: Which version of Flutter to install alongside Shorebird (e.g. `3.10.6`)
 - `platform`: Which platform to create a release for (e.g. `android` or `ios-alpha`)
+- `working-directory`: Which directory to run `shorebird release` in.
 
 ## Outputs
 

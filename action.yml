@@ -6,9 +6,6 @@ branding:
   color: green
 
 inputs:
-  flutter-version:
-    description: The Flutter version to use alongside Shorebird
-    required: false
   platform:
     description: The platform for which to create a release (e.g. android, ios-alpha)
     required: true
@@ -25,11 +22,7 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: shorebirdtech/setup-shorebird@v0
-      with:
-        flutter-version: ${{ inputs.flutter-version }}
-
-    - name: Shorebird Release
+    - name: 🐦 Shorebird Release
       shell: bash
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
