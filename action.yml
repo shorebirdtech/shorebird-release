@@ -31,6 +31,7 @@ runs:
 
     - name: Shorebird Release
       shell: bash
+      id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
       run: |
         OUTPUT=$(shorebird release ${{ inputs.platform }})
