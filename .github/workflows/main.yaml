@@ -74,7 +74,7 @@ jobs:
       - name: 🚦 Assert Release Version (Windows)
         if: runner.os == 'Windows'
         run: |
-          if (${{ steps.shorebird-release.outputs.release-version }} -match "0.1.0+1") {
+          if ("${{ steps.shorebird-release.outputs.release-version }}" -match "0.1.0\+1") {
             Write-Output "✅ Shorebird Release Succeeded!"
           } else {
             Write-Output "❌ Shorebird Release Failed."
