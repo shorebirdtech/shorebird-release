@@ -6,12 +6,13 @@ branding:
   color: green
 
 inputs:
-  flutter-version:
-    description: The Flutter version to use alongside Shorebird
-    required: false
   platform:
     description: The platform for which to create a release (e.g. android, ios-alpha)
     required: true
+  working-directory:
+    description: The working directory in which to run Shorebird
+    required: false
+    default: .
 
 outputs:
   release-version:
@@ -21,8 +22,18 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: shorebirdtech/setup-shorebird@v0
+    - name: 🐦 Shorebird Release
+      shell: bash
       id: shorebird-release
-      with:
-        flutter-version: ${{ inputs.flutter-version }}
-      run: shorebird release ${{ inputs.platform }}
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        OUTPUT=$(shorebird release ${{ inputs.platform }})
+        echo "$OUTPUT"
+        REGEXP="Published Release (.*)!"
+        if [[ $OUTPUT =~ $REGEXP ]]; then
+        RELEASE_VERSION=${BASH_REMATCH[1]}
+        echo "release-version=$(echo $RELEASE_VERSION)" >> $GITHUB_OUTPUT
+        else
+        echo "Failed to create release"
+        exit 1
+        fi

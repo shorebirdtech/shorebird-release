@@ -1,0 +1,82 @@
+name: ci
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  FLUTTER_VERSION: 3.13.9
+
+jobs:
+  semantic-pull-request:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@v1
+
+  e2e:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v3
+
+      - name: 🎯 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: ☕ Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: 🐦 Shorebird Setup
+        uses: shorebirdtech/setup-shorebird@v0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: ✨ Create New Flutter Project
+        run: flutter create e2e_test --empty
+
+      - name: 🐦 Shorebird Init
+        run: shorebird init --force
+        working-directory: e2e_test
+
+      - name: 🐦 Shorebird Release
+        uses: ./
+        id: shorebird-release
+        with:
+          platform: android
+          working-directory: e2e_test
+
+      - name: 🚦 Assert Release Version (MacOS/Linux)
+        if: runner.os != 'Windows'
+        run: |
+          if [[ ${{ steps.shorebird-release.outputs.release-version }} =~ "0.1.0+1" ]]; then          
+            echo '✅ Shorebird Release Succeeded!'
+          else
+            echo '❌ Shorebird Release Failed.'
+            exit 1
+          fi
+
+      - name: 🚦 Assert Release Version (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if ("${{ steps.shorebird-release.outputs.release-version }}" -match "0.1.0\+1") {
+            Write-Output "✅ Shorebird Release Succeeded!"
+          } else {
+            Write-Output "❌ Shorebird Release Failed."
+            exit 1
+          }
