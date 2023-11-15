@@ -1,6 +1,6 @@
 # Shorebird Release
 
-[![ci](https://github.com/shorebirdtech/release-shorebird/actions/workflows/main.yaml/badge.svg)](https://github.com/shorebirdtech/release-shorebird/actions/workflows/main.yaml)
+[![ci](https://github.com/shorebirdtech/shorebird-release/actions/workflows/main.yaml/badge.svg)](https://github.com/shorebirdtech/shorebird-release/actions/workflows/main.yaml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 Create a new release using the [Shorebird CLI](https://github.com/shorebirdtech/shorebird) for use in GitHub Actions.
@@ -18,7 +18,7 @@ Create a new release using the [Shorebird CLI](https://github.com/shorebirdtech/
 ```yaml
 steps:
   - uses: shorebirdtech/setup-shorebird@v0
-  - uses: shorebirdtech/release-shorebird@v0
+  - uses: shorebirdtech/shorebird-release@v0
     id: shorebird-release
     with:
       platform: android
