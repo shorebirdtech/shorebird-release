@@ -1,0 +1,50 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  FLUTTER_VERSION: 3.13.9
+
+jobs:
+  semantic-pull-request:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@v1
+
+  e2e:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: 🎯 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - uses: ./
+        id: shorebird-release
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: android
+      - if: runner.os != 'Windows'
+        run: |
+          if [[ ${{ steps.shorebird-release.outputs.release-version }} =~ "1.0.0+1" ]]; then          
+            echo '✅ Shorebird Release Succeeded!'
+          else
+            echo '❌ Shorebird Release Failed.'
+            exit 1
+          fi
+      - if: runner.os == 'Windows'
+        run: |
+          if (${{ steps.shorebird-release.outputs.release-version }} -match "1.0.0+1") {
+            Write-Output "✅ Shorebird Release Succeeded!"
+          } else {
+            Write-Output "❌ Shorebird Release Failed."
+            exit 1
+          }

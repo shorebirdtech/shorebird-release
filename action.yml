@@ -25,4 +25,13 @@ runs:
       id: shorebird-release
       with:
         flutter-version: ${{ inputs.flutter-version }}
-      run: shorebird release ${{ inputs.platform }}
+      run: |
+        OUTPUT=$(shorebird release ${{ inputs.platform }})
+        REGEXP="Published Release (.*)!"
+        if [[ $OUTPUT =~ $REGEXP ]]; then
+            RELEASE_VERSION=${BASH_REMATCH[1]}
+            echo "release-version=$(echo $RELEASE_VERSION)" >> $GITHUB_OUTPUT
+        else
+            echo "Failed to create release"
+            exit 1    
+        fi
