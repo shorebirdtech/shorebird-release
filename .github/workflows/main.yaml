@@ -44,6 +44,8 @@ jobs:
 
       - name: 🐦 Shorebird Setup
         uses: shorebirdtech/setup-shorebird@v0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: ✨ Create New Flutter Project
         run: flutter create e2e_test --empty
@@ -56,7 +58,6 @@ jobs:
         uses: ./
         id: shorebird-release
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: android
           working-directory: e2e_test
 
