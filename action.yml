@@ -12,6 +12,10 @@ inputs:
   platform:
     description: The platform for which to create a release (e.g. android, ios-alpha)
     required: true
+  working-directory:
+    description: The working directory in which to run Shorebird
+    required: false
+    default: .
 
 outputs:
   release-version:
@@ -35,3 +39,4 @@ runs:
             echo "Failed to create release"
             exit 1    
         fi
+      working-directory: ${{ inputs.working-directory }}

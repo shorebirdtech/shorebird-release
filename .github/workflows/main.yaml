@@ -6,6 +6,7 @@ on:
       - main
 
 env:
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
   FLUTTER_VERSION: 3.13.9
 
 jobs:
@@ -27,11 +28,15 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      - run: flutter create e2e_test --empty
+      - run: shorebird init --force
+        working-directory: e2e_test
       - uses: ./
         id: shorebird-release
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: android
+          working-directory: e2e_test
       - if: runner.os != 'Windows'
         run: |
           if [[ ${{ steps.shorebird-release.outputs.release-version }} =~ "1.0.0+1" ]]; then          
