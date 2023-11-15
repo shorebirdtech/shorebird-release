@@ -28,6 +28,7 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         OUTPUT=$(shorebird release ${{ inputs.platform }})
+        echo "$OUTPUT"
         REGEXP="Published Release (.*)!"
         if [[ $OUTPUT =~ $REGEXP ]]; then
         RELEASE_VERSION=${BASH_REMATCH[1]}
