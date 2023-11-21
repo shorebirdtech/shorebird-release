@@ -21,7 +21,6 @@ steps:
   - uses: shorebirdtech/shorebird-release@v0
     id: shorebird-release
     with:
-      args: --dry-run
       platform: android
       working-directory: ./path/to/app
 

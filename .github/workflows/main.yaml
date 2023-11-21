@@ -58,7 +58,7 @@ jobs:
         uses: ./
         id: shorebird-release
         with:
-          args: --dry-run
+          args: --verbose
           platform: android
           working-directory: e2e_test
 
