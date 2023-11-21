@@ -6,6 +6,10 @@ branding:
   color: green
 
 inputs:
+  args:
+    description: The arguments to pass to the Shorebird release command
+    required: false
+    default: ""
   platform:
     description: The platform for which to create a release (e.g. android, ios-alpha)
     required: true
@@ -27,7 +31,7 @@ runs:
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
       run: |
-        OUTPUT=$(shorebird release ${{ inputs.platform }})
+        OUTPUT=$(shorebird release ${{ inputs.platform }} ${{ inputs.args }})
         echo "$OUTPUT"
         REGEXP="Published Release (.*)!"
         if [[ $OUTPUT =~ $REGEXP ]]; then
