@@ -59,7 +59,7 @@ jobs:
         id: shorebird-release
         with:
           args: --verbose
-          platform: android
+          platform: androids
           working-directory: e2e_test
 
       - name: 🚦 Assert Release Version (MacOS/Linux)
