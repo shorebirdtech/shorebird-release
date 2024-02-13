@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: 📚 Git Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🎯 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -37,7 +37,7 @@ jobs:
           cache: true
 
       - name: ☕ Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
