@@ -12,7 +12,6 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.19.0
 
 jobs:
   semantic-pull-request:
@@ -33,7 +32,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: ☕ Set up Java
@@ -42,10 +40,8 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: 🐦 Shorebird Setup
+      - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v0
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: ✨ Create New Flutter Project
         run: flutter create e2e_test --empty
