@@ -30,14 +30,15 @@ runs:
       shell: bash
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
-      run: |
-        OUTPUT=$(shorebird release ${{ inputs.platform }} ${{ inputs.args }})
-        echo "$OUTPUT"
-        REGEXP="Published Release (.*)!"
-        if [[ $OUTPUT =~ $REGEXP ]]; then
-        RELEASE_VERSION=${BASH_REMATCH[1]}
-        echo "release-version=$(echo $RELEASE_VERSION)" >> $GITHUB_OUTPUT
-        else
-        echo "Failed to create release"
-        exit 1
-        fi
+      run: shorebird release ${{ inputs.platform }} ${{ inputs.args }}
+      # run: |
+      #   OUTPUT=$(shorebird release ${{ inputs.platform }} ${{ inputs.args }})
+      #   echo "$OUTPUT"
+      #   REGEXP="Published Release (.*)!"
+      #   if [[ $OUTPUT =~ $REGEXP ]]; then
+      #   RELEASE_VERSION=${BASH_REMATCH[1]}
+      #   echo "release-version=$(echo $RELEASE_VERSION)" >> $GITHUB_OUTPUT
+      #   else
+      #   echo "Failed to create release"
+      #   exit 1
+      #   fi
