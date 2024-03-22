@@ -31,13 +31,13 @@ runs:
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
       run: |
-        OUTPUT=$(shorebird release ${{ inputs.platform }} ${{ inputs.args }})
-        echo "$OUTPUT"
-        REGEXP="Published Release (.*)!"
-        if [[ $OUTPUT =~ $REGEXP ]]; then
-        RELEASE_VERSION=${BASH_REMATCH[1]}
-        echo "release-version=$(echo $RELEASE_VERSION)" >> $GITHUB_OUTPUT
+        shorebird release ${{ inputs.platform }} ${{ inputs.args }} > output.log
+        GREP_MATCH=$(grep -Ei "Published Release (.*)" output.log)
+        if [[ $GREP_MATCH ]]; then
+          # Strip the non-version-number characters from the line
+          RELEASE_VERSION=$(echo $GREP_MATCH | sed -E 's/^.+ Published Release (.*)\!$/\1/')
+          echo "release-version=$(echo $RELEASE_VERSION)" >> $GITHUB_OUTPUT
         else
-        echo "Failed to create release"
-        exit 1
+          echo "Failed to create release"
+          exit 1
         fi
