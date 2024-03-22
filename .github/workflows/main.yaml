@@ -31,6 +31,11 @@ jobs:
       - name: 🎯 Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          # TODO(bryanoltman): remove flutter-version specification once we
+          # support 3.19.4. This was added because `flutter create` creates a
+          # flutter project that requires a higher minimum Dart version than
+          # what we support.
+          flutter-version: "3.19.3"
           channel: stable
           cache: true
 
@@ -41,7 +46,7 @@ jobs:
           java-version: "17"
 
       - name: 🐦 Setup Shorebird
-        uses: shorebirdtech/setup-shorebird@v0
+        uses: shorebirdtech/setup-shorebird@v1
 
       - name: ✨ Create New Flutter Project
         run: flutter create e2e_test --empty
