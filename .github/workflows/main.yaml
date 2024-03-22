@@ -41,7 +41,7 @@ jobs:
           java-version: "17"
 
       - name: 🐦 Setup Shorebird
-        uses: shorebirdtech/setup-shorebird@v0
+        uses: shorebirdtech/setup-shorebird@v1
 
       - name: ✨ Create New Flutter Project
         run: flutter create e2e_test --empty
