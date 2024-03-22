@@ -32,6 +32,7 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         shorebird release ${{ inputs.platform }} ${{ inputs.args }} > output.log
+        cat output.log
         GREP_MATCH=$(grep -Ei "Published Release (.*)" output.log)
         if [[ $GREP_MATCH ]]; then
           # Strip the non-version-number characters from the line
