@@ -11,7 +11,7 @@ inputs:
     required: false
     default: ""
   platform:
-    description: The platform for which to create a release (e.g. android, ios-alpha)
+    description: The platform for which to create a release (e.g. android, ios)
     required: true
   working-directory:
     description: The working directory in which to run Shorebird
