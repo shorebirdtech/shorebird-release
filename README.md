@@ -35,7 +35,7 @@ The action takes the following inputs:
 - `args`: Any arguments to pass to `shorebird release`. For example, if you need
   to use a specific version of Flutter, you can pass `--flutter-version=1.2.3`.
   - Use an extra `--` to pass arguments to Flutter (e.g. `-- --dart-define=KEY=VALUE`)
-- `platform`: Which platform to create a release for (e.g. `android` or `ios-alpha`)
+- `platform`: Which platform to create a release for (e.g. `android` or `ios`)
 - `working-directory`: Which directory to run `shorebird release` in.
 
 ## Outputs
