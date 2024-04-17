@@ -15,6 +15,8 @@ Create a new release using the [Shorebird CLI](https://github.com/shorebirdtech/
 
 ## Usage
 
+Standard usage:
+
 ```yaml
 steps:
   - uses: shorebirdtech/setup-shorebird@v0
@@ -26,6 +28,19 @@ steps:
 
   - run: echo release-version ${{ steps.shorebird-release.outputs.release-version }}
     shell: bash
+```
+
+If you need to provide arguments to the release command, you can do so like this:
+
+```yaml
+steps:
+  - uses: shorebirdtech/setup-shorebird@v0
+  - uses: shorebirdtech/shorebird-release@v0
+    id: shorebird-release
+    with:
+      args: --flutter-version=1.2.3 --verbose --flavor=my-flavor --target=lib/special_main.dart
+      platform: android
+      working-directory: ./path/to/app
 ```
 
 ## Inputs
