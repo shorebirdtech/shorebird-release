@@ -11,7 +11,7 @@ inputs:
     required: false
     default: ""
   flutter-version:
-    description: The version of Flutter to use for the release. Defaults to the latest stable version.
+    description: The version of Flutter to use for the release. Use latest to always target the latest stable version.
     required: true    
   platform:
     description: The platform for which to create a release (e.g. android, ios)
