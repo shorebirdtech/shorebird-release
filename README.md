@@ -7,9 +7,7 @@ Create a new release using the [Shorebird CLI](https://github.com/shorebirdtech/
 
 ## Features
 
-✅ Create new Android releases
-
-✅ Create new iOS releases
+✅ Create new releases for iOS, Android, macOS, Linux, and Windows
 
 ✅ Outputs the release version
 
@@ -19,10 +17,11 @@ Standard usage:
 
 ```yaml
 steps:
-  - uses: shorebirdtech/setup-shorebird@v0
-  - uses: shorebirdtech/shorebird-release@v0
+  - uses: shorebirdtech/setup-shorebird@v1
+  - uses: shorebirdtech/shorebird-release@v1
     id: shorebird-release
     with:
+      flutter-version: latest
       platform: android
       working-directory: ./path/to/app
 
@@ -34,11 +33,12 @@ If you need to provide arguments to the release command, you can do so like this
 
 ```yaml
 steps:
-  - uses: shorebirdtech/setup-shorebird@v0
-  - uses: shorebirdtech/shorebird-release@v0
+  - uses: shorebirdtech/setup-shorebird@v1
+  - uses: shorebirdtech/shorebird-release@v1
     id: shorebird-release
     with:
-      args: --flutter-version=1.2.3 --verbose --flavor=my-flavor --target=lib/special_main.dart
+      args: --verbose --flavor=my-flavor --target=lib/special_main.dart
+      flutter-version: 3.29.2
       platform: android
       working-directory: ./path/to/app
 ```
@@ -48,8 +48,10 @@ steps:
 The action takes the following inputs:
 
 - `args`: Any arguments to pass to `shorebird release`. For example, if you need
-  to use a specific version of Flutter, you can pass `--flutter-version=1.2.3`.
+  to specify a flavor, you can pass `--flavor=<FLAVOR>`.
   - Use an extra `--` to pass arguments to Flutter (e.g. `-- --dart-define=KEY=VALUE`)
+- `flutter-version`: Which Flutter version to build the release with
+  - Use `latest` if you want to always target the latest stable version of Flutter support by Shorebird.
 - `platform`: Which platform to create a release for (e.g. `android` or `ios`)
 - `working-directory`: Which directory to run `shorebird release` in.
 

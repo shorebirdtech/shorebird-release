@@ -55,6 +55,7 @@ jobs:
         id: shorebird-release
         with:
           args: --verbose
+          flutter-version: latest
           platform: android
           working-directory: e2e_test
 

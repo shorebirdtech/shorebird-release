@@ -10,6 +10,9 @@ inputs:
     description: The arguments to pass to the Shorebird release command
     required: false
     default: ""
+  flutter-version:
+    description: The version of Flutter to use for the release. Use "latest" to always target the latest stable version.
+    required: true    
   platform:
     description: The platform for which to create a release (e.g. android, ios)
     required: true
@@ -31,7 +34,7 @@ runs:
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
       run: |
-        shorebird release ${{ inputs.platform }} ${{ inputs.args }} | tee output.log
+        shorebird release ${{ inputs.platform }} --flutter-version ${{ inputs.flutter-version }} ${{ inputs.args }} | tee output.log
         GREP_MATCH=$(grep -Ei "Published Release (.*)" output.log)
         if [[ $GREP_MATCH ]]; then
           # Strip the non-version-number characters from the line
