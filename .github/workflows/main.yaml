@@ -78,3 +78,66 @@ jobs:
             Write-Output "❌ Shorebird Release Failed."
             exit 1
           }
+
+  e2e-dry-run:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        dry-run-flag: ["--dry-run", "-n"]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+
+      - name: 🎯 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: ☕ Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+
+      - name: ✨ Create New Flutter Project
+        run: flutter create e2e_test_dry_run --empty
+
+      - name: 🐦 Shorebird Init
+        run: shorebird init --force
+        working-directory: e2e_test_dry_run
+
+      - name: 🐦 Shorebird Release (Dry Run)
+        uses: ./
+        id: shorebird-release-dry-run
+        with:
+          args: ${{ matrix.dry-run-flag }} --verbose
+          flutter-version: latest
+          platform: android
+          working-directory: e2e_test_dry_run
+
+      - name: 🚦 Assert Dry Run Succeeded (MacOS/Linux)
+        if: runner.os != 'Windows'
+        run: |
+          if [[ -z "${{ steps.shorebird-release-dry-run.outputs.release-version }}" ]]; then
+            echo '✅ Shorebird Release Dry Run Succeeded!'
+          else
+            echo '❌ Shorebird Release Dry Run Failed - release-version should be empty.'
+            exit 1
+          fi
+
+      - name: 🚦 Assert Dry Run Succeeded (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if ([string]::IsNullOrEmpty("${{ steps.shorebird-release-dry-run.outputs.release-version }}")) {
+            Write-Output "✅ Shorebird Release Dry Run Succeeded!"
+          } else {
+            Write-Output "❌ Shorebird Release Dry Run Failed - release-version should be empty."
+            exit 1
+          fi
