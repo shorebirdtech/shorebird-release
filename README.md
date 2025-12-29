@@ -37,7 +37,11 @@ steps:
   - uses: shorebirdtech/shorebird-release@v1
     id: shorebird-release
     with:
-      args: --verbose --flavor=my-flavor --target=lib/special_main.dart
+      # Use >- to strip newlines if passing args across multiple lines.
+      args: >-
+        --verbose
+        --flavor=my-flavor
+        --target=lib/special_main.dart
       flutter-version: 3.29.2
       platform: android
       working-directory: ./path/to/app
