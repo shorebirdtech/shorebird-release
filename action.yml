@@ -12,7 +12,7 @@ inputs:
     default: ""
   flutter-version:
     description: The version of Flutter to use for the release. Use "latest" to always target the latest stable version.
-    required: true    
+    required: true
   platform:
     description: The platform for which to create a release (e.g. android, ios)
     required: true
@@ -34,12 +34,28 @@ runs:
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
       run: |
-        shorebird release ${{ inputs.platform }} --flutter-version ${{ inputs.flutter-version }} ${{ inputs.args }} | tee output.log
-        GREP_MATCH=$(grep -Ei "Published Release (.*)" output.log)
-        if [[ $GREP_MATCH ]]; then
+        set -euo pipefail
+
+        # Sanitize args:
+        # - YAML literal blocks (`|`) preserve newlines, which would break piping.
+        # - Replace newlines with spaces and trim leading/trailing whitespace.
+        ARGS='${{ inputs.args }}'
+        if [[ "$ARGS" == *$'\n'* ]]; then
+          echo "::warning::inputs.args contains newlines; converting them to spaces. Consider using YAML '>-'."
+        fi
+        ARGS="${ARGS//$'\n'/ }"
+        ARGS="$(echo "$ARGS" | awk '{$1=$1; print}')"
+
+        shorebird release '${{ inputs.platform }}' \
+          --flutter-version '${{ inputs.flutter-version }}' \
+          $ARGS \
+          | tee output.log
+
+        GREP_MATCH="$(grep -Ei "Published Release (.*)" output.log || true)"
+        if [[ -n "$GREP_MATCH" ]]; then
           # Strip the non-version-number characters from the line
-          RELEASE_VERSION=$(echo $GREP_MATCH | sed -E 's/^.+ Published Release (.*)\!$/\1/')
-          echo "release-version=$(echo $RELEASE_VERSION)" >> $GITHUB_OUTPUT
+          RELEASE_VERSION="$(echo "$GREP_MATCH" | sed -E 's/^.+ Published Release (.*)\!$/\1/')"
+          echo "release-version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
         else
           echo "Failed to create release"
           exit 1
