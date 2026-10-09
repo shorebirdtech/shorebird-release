@@ -63,4 +63,4 @@ The action takes the following inputs:
 
 The actions outputs the following:
 
-- `release-version`: The version of the release that was successfully created.
+- `release-version`: The version of the release that was successfully created. Empty when `args` includes `--dry-run`.

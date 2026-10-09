@@ -10,17 +10,19 @@ on:
     branches:
       - main
 
-env:
-  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+permissions:
+  contents: read
 
 jobs:
   semantic-pull-request:
-    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@v1
+    permissions:
+      pull-requests: read
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@61d25935870f12a1f2c23f2a04d5f193c83f4e5d # v1.21.1
 
   args:
     # Pins how `args` is split into arguments, using a stub `shorebird` that
     # records its argv. Must match v1.0.0, which interpolated args directly
-    # into the command line.
+    # into the command line. Also covers --dry-run, which publishes nothing.
     strategy:
       fail-fast: false
       matrix:
@@ -51,12 +53,25 @@ jobs:
           - name: empty
             args: ""
             expected: "[release][android][--flutter-version][latest]"
+          - name: unset-variable
+            args: -- --dart-define=A=$SHOREBIRD_UNSET_TEST_VAR
+            expected: "[release][android][--flutter-version][latest][--][--dart-define=A=]"
+          - name: dry-run-grouped
+            args: -vn
+            expected: "[release][android][--flutter-version][latest][-vn]"
+            dry-run: true
+          - name: dry-run
+            args: --dry-run
+            expected: "[release][android][--flutter-version][latest][--dry-run]"
+            dry-run: true
 
     name: args (${{ matrix.case.name }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
       - name: 📚 Git Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 🪶 Stub Shorebird
         shell: bash
@@ -65,13 +80,16 @@ jobs:
           cat > "$RUNNER_TEMP/stub/shorebird" <<'STUB'
           #!/usr/bin/env bash
           printf '[%s]' "$@" > "$RUNNER_TEMP/argv.txt"
+          for arg in "$@"; do
+            [[ "$arg" == "--dry-run" || "$arg" == "-vn" ]] && { echo "No issues detected."; exit 0; }
+          done
           echo "✅ Published Release 0.1.0+1!"
           STUB
           chmod +x "$RUNNER_TEMP/stub/shorebird"
           echo "$RUNNER_TEMP/stub" >> "$GITHUB_PATH"
 
       - name: 🐦 Shorebird Release
-        uses: ./
+        uses: $/
         id: shorebird-release
         with:
           args: ${{ matrix.case.args }}
@@ -83,14 +101,28 @@ jobs:
         env:
           EXPECTED: ${{ matrix.case.expected }}
           RELEASE_VERSION: ${{ steps.shorebird-release.outputs.release-version }}
+          DRY_RUN: ${{ matrix.case.dry-run == true }}
         run: |
           actual="$(cat "$RUNNER_TEMP/argv.txt")"
           echo "expected: $EXPECTED"
           echo "actual:   $actual"
           [[ "$actual" == "$EXPECTED" ]]
-          [[ "$RELEASE_VERSION" == "0.1.0+1" ]]
+          expected_version="0.1.0+1"
+          if [[ "$DRY_RUN" == true ]]; then expected_version=""; fi
+          [[ "$RELEASE_VERSION" == "$expected_version" ]]
+
+  zizmor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 🔒 zizmor
+        run: pipx run zizmor==1.30.1 --offline --config .github/zizmor.yml .
 
   e2e:
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -99,16 +131,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: 📚 Git Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 🎯 Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
           cache: true
 
       - name: ☕ Set up Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: "temurin"
           java-version: "17"
@@ -129,7 +163,7 @@ jobs:
         working-directory: e2e_test
 
       - name: 🐦 Shorebird Release
-        uses: ./
+        uses: $/
         id: shorebird-release
         with:
           args: --verbose
@@ -137,22 +171,14 @@ jobs:
           platform: android
           working-directory: e2e_test
 
-      - name: 🚦 Assert Release Version (MacOS/Linux)
-        if: runner.os != 'Windows'
+      - name: 🚦 Assert Release Version
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.shorebird-release.outputs.release-version }}
         run: |
-          if [[ ${{ steps.shorebird-release.outputs.release-version }} =~ "0.1.0+1" ]]; then
+          if [[ "$RELEASE_VERSION" == "0.1.0+1" ]]; then
             echo '✅ Shorebird Release Succeeded!'
           else
-            echo '❌ Shorebird Release Failed.'
+            echo "❌ Shorebird Release Failed (release-version: '$RELEASE_VERSION')."
             exit 1
           fi
-
-      - name: 🚦 Assert Release Version (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          if ("${{ steps.shorebird-release.outputs.release-version }}" -match "0.1.0\+1") {
-            Write-Output "✅ Shorebird Release Succeeded!"
-          } else {
-            Write-Output "❌ Shorebird Release Failed."
-            exit 1
-          }
