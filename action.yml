@@ -34,35 +34,39 @@ runs:
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
       env:
-        ARGS: ${{ inputs.args }}
-        FLUTTER_VERSION: ${{ inputs.flutter-version }}
-        PLATFORM: ${{ inputs.platform }}
+        SHOREBIRD_ACTION_ARGS: ${{ inputs.args }}
+        SHOREBIRD_ACTION_FLUTTER_VERSION: ${{ inputs.flutter-version }}
+        SHOREBIRD_ACTION_PLATFORM: ${{ inputs.platform }}
       run: |
-        set -euo pipefail
+        # No `set -u`: args may reference unset variables, which expand to
+        # empty as they did in v1.0.0.
+        set -eo pipefail
 
         # Parse args with shell quoting rules, matching v1.0.0 where args were
         # interpolated directly into the command line. Line continuations and
         # newlines (from YAML `|` blocks) are folded into spaces first so a
-        # multi-line value stays one command.
-        if [[ "$ARGS" == *$'\n'* ]]; then
+        # multi-line value stays one command. Variables set here are prefixed
+        # so they can't shadow a variable that args expands.
+        if [[ "$SHOREBIRD_ACTION_ARGS" == *$'\n'* ]]; then
           echo "::warning::inputs.args contains newlines; converting them to spaces. Consider using YAML '>-'."
         fi
-        CONTINUATION=$'\\\n'
-        ARGS="${ARGS//"$CONTINUATION"/ }"
-        ARGS="${ARGS//$'\n'/ }"
-        eval "set -- $ARGS"
+        SHOREBIRD_ACTION_CONTINUATION=$'\\\n'
+        SHOREBIRD_ACTION_ARGS="${SHOREBIRD_ACTION_ARGS//"$SHOREBIRD_ACTION_CONTINUATION"/ }"
+        SHOREBIRD_ACTION_ARGS="${SHOREBIRD_ACTION_ARGS//$'\n'/ }"
+        eval "set -- $SHOREBIRD_ACTION_ARGS"
 
         # --dry-run validates without publishing, so there's no release
         # version to report. Flags after `--` go to Flutter, not shorebird.
         DRY_RUN=false
         for arg in "$@"; do
           [[ "$arg" == "--" ]] && break
-          [[ "$arg" == "--dry-run" || "$arg" == "-n" ]] && DRY_RUN=true
+          # -n may be grouped with other short flags, e.g. -vn.
+          [[ "$arg" == "--dry-run" || "$arg" =~ ^-[A-Za-z]*n[A-Za-z]*$ ]] && DRY_RUN=true
         done
 
         LOG="$RUNNER_TEMP/shorebird-release.log"
-        shorebird release "$PLATFORM" \
-          --flutter-version "$FLUTTER_VERSION" \
+        shorebird release "$SHOREBIRD_ACTION_PLATFORM" \
+          --flutter-version "$SHOREBIRD_ACTION_FLUTTER_VERSION" \
           "$@" \
           | tee "$LOG"
 

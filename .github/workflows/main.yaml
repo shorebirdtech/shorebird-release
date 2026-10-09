@@ -53,6 +53,13 @@ jobs:
           - name: empty
             args: ""
             expected: "[release][android][--flutter-version][latest]"
+          - name: unset-variable
+            args: -- --dart-define=A=$SHOREBIRD_UNSET_TEST_VAR
+            expected: "[release][android][--flutter-version][latest][--][--dart-define=A=]"
+          - name: dry-run-grouped
+            args: -vn
+            expected: "[release][android][--flutter-version][latest][-vn]"
+            dry-run: true
           - name: dry-run
             args: --dry-run
             expected: "[release][android][--flutter-version][latest][--dry-run]"
@@ -74,7 +81,7 @@ jobs:
           #!/usr/bin/env bash
           printf '[%s]' "$@" > "$RUNNER_TEMP/argv.txt"
           for arg in "$@"; do
-            [[ "$arg" == "--dry-run" ]] && { echo "No issues detected."; exit 0; }
+            [[ "$arg" == "--dry-run" || "$arg" == "-vn" ]] && { echo "No issues detected."; exit 0; }
           done
           echo "✅ Published Release 0.1.0+1!"
           STUB
