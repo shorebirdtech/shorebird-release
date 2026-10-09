@@ -33,22 +33,28 @@ runs:
       shell: bash
       id: shorebird-release
       working-directory: ${{ inputs.working-directory }}
+      env:
+        ARGS: ${{ inputs.args }}
+        FLUTTER_VERSION: ${{ inputs.flutter-version }}
+        PLATFORM: ${{ inputs.platform }}
       run: |
         set -euo pipefail
 
-        # Sanitize args:
-        # - YAML literal blocks (`|`) preserve newlines, which would break piping.
-        # - Replace newlines with spaces and trim leading/trailing whitespace.
-        ARGS='${{ inputs.args }}'
+        # Parse args with shell quoting rules, matching v1.0.0 where args were
+        # interpolated directly into the command line. Line continuations and
+        # newlines (from YAML `|` blocks) are folded into spaces first so a
+        # multi-line value stays one command.
         if [[ "$ARGS" == *$'\n'* ]]; then
           echo "::warning::inputs.args contains newlines; converting them to spaces. Consider using YAML '>-'."
         fi
+        CONTINUATION=$'\\\n'
+        ARGS="${ARGS//"$CONTINUATION"/ }"
         ARGS="${ARGS//$'\n'/ }"
-        ARGS="$(echo "$ARGS" | awk '{$1=$1; print}')"
+        eval "set -- $ARGS"
 
-        shorebird release '${{ inputs.platform }}' \
-          --flutter-version '${{ inputs.flutter-version }}' \
-          $ARGS \
+        shorebird release "$PLATFORM" \
+          --flutter-version "$FLUTTER_VERSION" \
+          "$@" \
           | tee output.log
 
         GREP_MATCH="$(grep -Ei "Published Release (.*)" output.log || true)"

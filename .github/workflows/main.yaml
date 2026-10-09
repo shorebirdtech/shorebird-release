@@ -17,6 +17,79 @@ jobs:
   semantic-pull-request:
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@v1
 
+  args:
+    # Pins how `args` is split into arguments, using a stub `shorebird` that
+    # records its argv. Must match v1.0.0, which interpolated args directly
+    # into the command line.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        case:
+          - name: plain
+            args: --verbose -- --dart-define=A=b
+            expected: "[release][android][--flutter-version][latest][--verbose][--][--dart-define=A=b]"
+          - name: double-quoted
+            args: -- --dart-define="A=b"
+            expected: "[release][android][--flutter-version][latest][--][--dart-define=A=b]"
+          - name: double-quoted-space
+            args: -- --dart-define="A=b c"
+            expected: "[release][android][--flutter-version][latest][--][--dart-define=A=b c]"
+          - name: single-quoted-space
+            args: -- --dart-define=MSG='hi there'
+            expected: "[release][android][--flutter-version][latest][--][--dart-define=MSG=hi there]"
+          - name: literal-block
+            args: |
+              --verbose
+              --flavor=prod
+            expected: "[release][android][--flutter-version][latest][--verbose][--flavor=prod]"
+          - name: line-continuation
+            args: |
+              --verbose \
+                --flavor=prod
+            expected: "[release][android][--flutter-version][latest][--verbose][--flavor=prod]"
+          - name: empty
+            args: ""
+            expected: "[release][android][--flutter-version][latest]"
+
+    name: args (${{ matrix.case.name }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v7
+
+      - name: 🪶 Stub Shorebird
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/stub"
+          cat > "$RUNNER_TEMP/stub/shorebird" <<'STUB'
+          #!/usr/bin/env bash
+          printf '[%s]' "$@" > "$RUNNER_TEMP/argv.txt"
+          echo "✅ Published Release 0.1.0+1!"
+          STUB
+          chmod +x "$RUNNER_TEMP/stub/shorebird"
+          echo "$RUNNER_TEMP/stub" >> "$GITHUB_PATH"
+
+      - name: 🐦 Shorebird Release
+        uses: ./
+        id: shorebird-release
+        with:
+          args: ${{ matrix.case.args }}
+          flutter-version: latest
+          platform: android
+
+      - name: 🚦 Assert Arguments
+        shell: bash
+        env:
+          EXPECTED: ${{ matrix.case.expected }}
+          RELEASE_VERSION: ${{ steps.shorebird-release.outputs.release-version }}
+        run: |
+          actual="$(cat "$RUNNER_TEMP/argv.txt")"
+          echo "expected: $EXPECTED"
+          echo "actual:   $actual"
+          [[ "$actual" == "$EXPECTED" ]]
+          [[ "$RELEASE_VERSION" == "0.1.0+1" ]]
+
   e2e:
     strategy:
       fail-fast: false
