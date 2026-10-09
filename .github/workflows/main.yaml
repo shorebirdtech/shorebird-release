@@ -17,10 +17,24 @@ jobs:
   semantic-pull-request:
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@v1
 
+  parse-args:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v7
+
+      - name: 🧪 Test parse_args
+        shell: bash
+        run: bash test/parse_args_test.sh
+
   args:
-    # Pins how `args` is split into arguments, using a stub `shorebird` that
-    # records its argv. Must match v1.0.0, which interpolated args directly
-    # into the command line.
+    # Pins how `args` is split into arguments end to end, using a stub
+    # `shorebird` that records its argv. Parser edge cases live in
+    # test/parse_args_test.sh.
     strategy:
       fail-fast: false
       matrix:
@@ -51,6 +65,9 @@ jobs:
           - name: empty
             args: ""
             expected: "[release][android][--flutter-version][latest]"
+          - name: rejects-expansion
+            args: -- --dart-define=SHA=$GITHUB_SHA
+            should-fail: true
 
     name: args (${{ matrix.case.name }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -73,12 +90,21 @@ jobs:
       - name: 🐦 Shorebird Release
         uses: ./
         id: shorebird-release
+        continue-on-error: ${{ matrix.case.should-fail == true }}
         with:
           args: ${{ matrix.case.args }}
           flutter-version: latest
           platform: android
 
+      - name: 🚦 Assert Rejected
+        if: matrix.case.should-fail
+        shell: bash
+        run: |
+          [[ "${{ steps.shorebird-release.outcome }}" == "failure" ]]
+          [[ ! -e "$RUNNER_TEMP/argv.txt" ]]
+
       - name: 🚦 Assert Arguments
+        if: ${{ !matrix.case.should-fail }}
         shell: bash
         env:
           EXPECTED: ${{ matrix.case.expected }}

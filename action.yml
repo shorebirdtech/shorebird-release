@@ -40,21 +40,14 @@ runs:
       run: |
         set -euo pipefail
 
-        # Parse args with shell quoting rules, matching v1.0.0 where args were
-        # interpolated directly into the command line. Line continuations and
-        # newlines (from YAML `|` blocks) are folded into spaces first so a
-        # multi-line value stays one command.
-        if [[ "$ARGS" == *$'\n'* ]]; then
-          echo "::warning::inputs.args contains newlines; converting them to spaces. Consider using YAML '>-'."
-        fi
-        CONTINUATION=$'\\\n'
-        ARGS="${ARGS//"$CONTINUATION"/ }"
-        ARGS="${ARGS//$'\n'/ }"
-        eval "set -- $ARGS"
+        # Split args on whitespace honoring quotes and escapes, without
+        # shell expansion. See scripts/parse_args.sh.
+        source "$GITHUB_ACTION_PATH/scripts/parse_args.sh"
+        parse_args "$ARGS"
 
         shorebird release "$PLATFORM" \
           --flutter-version "$FLUTTER_VERSION" \
-          "$@" \
+          ${PARSED_ARGS[@]+"${PARSED_ARGS[@]}"} \
           | tee output.log
 
         GREP_MATCH="$(grep -Ei "Published Release (.*)" output.log || true)"

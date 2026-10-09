@@ -54,6 +54,12 @@ The action takes the following inputs:
 - `args`: Any arguments to pass to `shorebird release`. For example, if you need
   to specify a flavor, you can pass `--flavor=<FLAVOR>`.
   - Use an extra `--` to pass arguments to Flutter (e.g. `-- --dart-define=KEY=VALUE`)
+  - Arguments are split on whitespace. Single quotes, double quotes, and
+    backslash escapes work as in a shell, so `--dart-define="KEY=a b"` is one
+    argument. Args are not run through a shell: `$VAR`, `$(...)`, and
+    backticks are not expanded, and unquoted `;`, `&`, `|`, `<`, `>`, `(`,
+    `)` are rejected. Insert values with expressions instead, e.g.
+    `--dart-define=SHA=${{ github.sha }}`.
 - `flutter-version`: Which Flutter version to build the release with
   - Use `latest` if you want to always target the latest stable version of Flutter support by Shorebird.
 - `platform`: Which platform to create a release for (e.g. `android` or `ios`)
