@@ -23,7 +23,7 @@ inputs:
 
 outputs:
   release-version:
-    description: The version of the release that was created.
+    description: The version of the release that was created. Empty for --dry-run.
     value: ${{ steps.shorebird-release.outputs.release-version }}
 
 runs:
@@ -52,12 +52,26 @@ runs:
         ARGS="${ARGS//$'\n'/ }"
         eval "set -- $ARGS"
 
+        # --dry-run validates without publishing, so there's no release
+        # version to report. Flags after `--` go to Flutter, not shorebird.
+        DRY_RUN=false
+        for arg in "$@"; do
+          [[ "$arg" == "--" ]] && break
+          [[ "$arg" == "--dry-run" || "$arg" == "-n" ]] && DRY_RUN=true
+        done
+
+        LOG="$RUNNER_TEMP/shorebird-release.log"
         shorebird release "$PLATFORM" \
           --flutter-version "$FLUTTER_VERSION" \
           "$@" \
-          | tee output.log
+          | tee "$LOG"
 
-        GREP_MATCH="$(grep -Ei "Published Release (.*)" output.log || true)"
+        if [[ "$DRY_RUN" == true ]]; then
+          echo "Dry run succeeded; no release was published."
+          exit 0
+        fi
+
+        GREP_MATCH="$(grep -Ei "Published Release (.*)" "$LOG" || true)"
         if [[ -n "$GREP_MATCH" ]]; then
           # Strip the non-version-number characters from the line
           RELEASE_VERSION="$(echo "$GREP_MATCH" | sed -E 's/^.+ Published Release (.*)\!$/\1/')"
