@@ -71,7 +71,7 @@ runs:
           exit 0
         fi
 
-        GREP_MATCH="$(grep -Ei "Published Release (.*)" "$LOG" || true)"
+        GREP_MATCH="$(grep -m1 -Ei "Published Release (.*)" "$LOG" || true)"
         if [[ -n "$GREP_MATCH" ]]; then
           # Strip the non-version-number characters from the line
           RELEASE_VERSION="$(echo "$GREP_MATCH" | sed -E 's/^.+ Published Release (.*)\!$/\1/')"
