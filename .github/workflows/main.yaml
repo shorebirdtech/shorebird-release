@@ -163,8 +163,9 @@ jobs:
 
       - name: 🐦 Shorebird Init
         # Mints a new app in the project on every run; the last step deletes
-        # it. Same id as SHOREBIRD_PROJECT_ID above.
-        run: shorebird init --force --organization-id=60208
+        # it. A service account belongs to one project, so init needs no
+        # --org-id.
+        run: shorebird init --force
         working-directory: e2e_test
 
       - name: 🐦 Shorebird Release
