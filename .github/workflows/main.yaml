@@ -143,9 +143,28 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+
+      - name: 🔎 Resolve Shorebird's Flutter
+        # `flutter create` pins the app to its own Dart (sdk: ^<version>).
+        # Stable Flutter can ship before Shorebird's, and an app pinned to its
+        # newer Dart fails version solving when Shorebird builds it, so the
+        # app is created with the Flutter Shorebird builds with.
+        id: shorebird-flutter
+        shell: bash
+        run: |
+          version=$(shorebird --version | sed -n 's/^Flutter \([0-9.]*\) .*/\1/p')
+          if [[ -z "$version" ]]; then
+            echo "Could not read the Flutter version from shorebird --version." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: 🎯 Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
+          flutter-version: ${{ steps.shorebird-flutter.outputs.version }}
           channel: stable
           cache: true
 
@@ -154,9 +173,6 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
-
-      - name: 🐦 Setup Shorebird
-        uses: shorebirdtech/setup-shorebird@v1
 
       - name: ✨ Create New Flutter Project
         run: flutter create e2e_test --empty
