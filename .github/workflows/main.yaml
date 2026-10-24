@@ -143,12 +143,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: 🎯 Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          channel: stable
-          cache: true
-
       - name: ☕ Set up Java
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
@@ -159,7 +153,14 @@ jobs:
         uses: shorebirdtech/setup-shorebird@v1
 
       - name: ✨ Create New Flutter Project
-        run: flutter create e2e_test --empty
+        # With the Flutter that `shorebird release` builds with, not the newest
+        # stable: when stable moves ahead of Shorebird's latest Flutter, a
+        # project created by stable needs a Dart SDK Shorebird can't build with.
+        shell: bash
+        run: |
+          SHOREBIRD_BIN="$(dirname "$(command -v shorebird)")"
+          FLUTTER_REVISION="$(cat "$SHOREBIRD_BIN/internal/flutter.version")"
+          "$SHOREBIRD_BIN/cache/flutter/$FLUTTER_REVISION/bin/flutter" create e2e_test --empty
 
       - name: 🐦 Shorebird Init
         # Mints a new app in the project on every run; the last step deletes
