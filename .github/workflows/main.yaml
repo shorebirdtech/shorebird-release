@@ -6,6 +6,11 @@ concurrency:
 
 on:
   pull_request:
+  # Checks run on the queue's own temp branch, not the PR. Without this
+  # trigger the required contexts never report there and the queue
+  # ejects every PR at the timeout.
+  merge_group:
+    types: [checks_requested]
   push:
     branches:
       - main
@@ -15,6 +20,9 @@ permissions:
 
 jobs:
   semantic-pull-request:
+    # No pull request to read the title of on a merge_group event. A skipped
+    # job is not a failure, so the ci gate still reports.
+    if: ${{ github.event_name == 'pull_request' }}
     permissions:
       pull-requests: read
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/semantic_pull_request.yml@61d25935870f12a1f2c23f2a04d5f193c83f4e5d # v1.21.1
@@ -212,3 +220,15 @@ jobs:
         shell: bash
         working-directory: e2e_test
         run: shorebird api -X DELETE "apps/{appId}"
+
+  # One context for the branch to require, so a required check still reports
+  # when a job is skipped on a merge_group event, and a matrix change does not
+  # leave a required context behind that nothing produces.
+  ci:
+    needs: [semantic-pull-request, args, zizmor, e2e]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⛔️ exit(1) on failure
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
