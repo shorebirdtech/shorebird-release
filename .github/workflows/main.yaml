@@ -139,7 +139,7 @@ jobs:
           persist-credentials: false
 
       - name: 🐦 Setup Shorebird
-        uses: shorebirdtech/setup-shorebird@v1
+        uses: shorebirdtech/setup-shorebird@8b1059ddb56a926f0146edf4133cc647775c162f # v1.4.1
 
       - name: 🔎 Resolve Shorebird's Flutter
         # `flutter create` pins the app to its own Dart (sdk: ^<version>).
