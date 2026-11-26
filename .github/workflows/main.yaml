@@ -141,27 +141,19 @@ jobs:
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@8b1059ddb56a926f0146edf4133cc647775c162f # v1.4.1
 
-      - name: 🔎 Resolve Shorebird's Flutter
+      - name: 🎯 Set up Shorebird's Flutter
         # `flutter create` pins the app to its own Dart (sdk: ^<version>).
         # Stable Flutter can ship before Shorebird's, and an app pinned to its
         # newer Dart fails version solving when Shorebird builds it, so the
-        # app is created with the Flutter Shorebird builds with.
-        id: shorebird-flutter
+        # app is created with the Flutter Shorebird builds with. Shorebird
+        # installs it, not subosito/flutter-action: that action uses
+        # actions/cache by tag, which this repository's SHA-pinning policy
+        # refuses.
         shell: bash
         run: |
-          version=$(shorebird --version | sed -n 's/^Flutter \([0-9.]*\) .*/\1/p')
-          if [[ -z "$version" ]]; then
-            echo "Could not read the Flutter version from shorebird --version." >&2
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: 🎯 Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          flutter-version: ${{ steps.shorebird-flutter.outputs.version }}
-          channel: stable
-          cache: true
+          shorebird flutter precache
+          flutter_dir=$(shorebird flutter path)
+          echo "$flutter_dir/bin" >> "$GITHUB_PATH"
 
       - name: ☕ Set up Java
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
